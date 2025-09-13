@@ -1,7 +1,5 @@
 provider "aws" {
   region = "ap-south-1"
-  # access_key = "var.access_key"
-  #secret_key = "var.secret_key"
 }
 
 # Lookup VPC by tag
@@ -141,6 +139,24 @@ resource "aws_launch_template" "ecs-launch" {
   user_data = base64encode(<<EOF
 #!/bin/bash
 echo ECS_CLUSTER=${aws_ecs_cluster.main.name} >> /etc/ecs/ecs.config
+mkdir /opt/nginx/ && touch /opt/nginx/index.html
+cat <<EOT > /opt/nginx/index.html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" 
+          content="width=device-width, initial-scale=1.0">
+    title>Iron Man is coming</title>
+</head>
+<body>
+    <img src=
+ "https://wallpapercave.com/wp/wp4974346.jpg"
+         alt="GFG image" />
+</body>
+
+</html>
+EOT
 EOF
 )
 }
@@ -197,8 +213,20 @@ resource "aws_ecs_task_definition" "web" {
         containerPort = 80,
         hostPort      = 80
       }]
+      mountPoints = [
+        {
+          sourceVolume  = "html-volume"
+          containerPath = "/usr/share/nginx/html"
+          readOnly      = false
     }
-  ])
+      ]
+    }
+  ]
+  )
+  volume {
+    name = "html-volume"
+    host_path = "/opt/nginx/" 
+  }
 }
 
 resource "aws_ecs_service" "web" {
