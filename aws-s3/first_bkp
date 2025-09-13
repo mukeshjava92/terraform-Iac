@@ -1,0 +1,65 @@
+provider "aws" {
+  region     = "ap-south-1"
+  access_key = ""
+  secret_key = ""
+}
+#resource "aws_instance" "ec" {
+#  ami = "ami-0861f4e788f5069dd"
+## instance_type = "t2.micro" 
+#}
+resource "aws_s3_bucket" "ec-s3" {
+  bucket = "ec2dataprodbucket"
+
+  tags = {
+    Name = "ec2dataprodbucket"
+    Environment = "Prod"
+  }
+}
+resource "aws_s3_bucket_public_access_block" "dispublc" {
+  bucket = aws_s3_bucket.ec-s3.id
+  block_public_acls       = false
+  block_public_policy     = false
+  ignore_public_acls      = false
+  restrict_public_buckets = false
+  
+}
+resource "aws_s3_bucket_ownership_controls" "owner" {
+  bucket = aws_s3_bucket.ec-s3.id
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+  
+}
+resource "aws_s3_bucket_acl" "s3acl" {
+  bucket = aws_s3_bucket.ec-s3.id
+  acl = "private"
+  
+}
+resource "aws_s3_bucket_versioning" "s3-prd-version" {
+  bucket = aws_s3_bucket.ec-s3.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+  }  
+  resource "aws_s3_object" "ec2-file" {
+    bucket = aws_s3_bucket.ec-s3.id
+    key = "index.html"
+    source = "${path.module}/index.html"
+  }
+resource "aws_s3_bucket" "logging" {
+  bucket = "mukeshs3logbucket"
+  tags = {
+    Name = "mukeshs3logbucket"
+    Environment= "Prod"
+  }
+}
+resource "aws_s3_bucket_acl" "s3acl-loging" {
+  bucket = aws_s3_bucket.s3log.id
+  acl = "log-delivery-write"
+}
+  resource "aws_s3_bucket_logging" "ecs3loggin" {
+    bucket = aws_s3_bucket.ec-s3.id
+    target_bucket = aws_s3_bucket.logging.id
+    target_prefix = "/logs"
+    
+  }

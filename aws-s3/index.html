@@ -1,0 +1,18 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Principal": {
+                "Service": "logging.s3.amazonaws.com"
+            },
+            "Action": "s3:PutObject",
+            "Resource": "arn:aws:s3:::access-logging-bucket11112/*",
+            "Condition": {
+                "StringEquals": {
+                    "aws:SourceAccount": "570357163603"
+                }
+            }
+        }
+    ]
+}
